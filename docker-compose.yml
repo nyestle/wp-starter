@@ -1,0 +1,34 @@
+version: '3.9'
+
+services:
+  wordpress:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: custom-wordpress
+    container_name: wordpress
+    ports:
+      - "8080:80"
+    environment:
+      WORDPRESS_DB_HOST: db:3306
+      WORDPRESS_DB_USER: admin
+      WORDPRESS_DB_PASSWORD: 1pw4mysql
+      WORDPRESS_DB_NAME: wp_db
+    volumes:
+      - wp-content:/var/www/html/wp-content
+
+  db:
+    image: mysql:5.7
+    container_name: wordpress-db
+    restart: always
+    environment:
+      MYSQL_DATABASE: wp_db
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: 1pw4mysql
+      MYSQL_ROOT_PASSWORD: 1pw4mysqlroot
+    volumes:
+      - db_data:/var/lib/mysql
+
+volumes:
+  wp-content:
+  db_data:

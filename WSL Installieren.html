@@ -1,0 +1,98 @@
+﻿<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WSL Installieren</title>
+  <link rel="stylesheet" href="https://stackedit.io/style.css" />
+</head>
+
+<body class="stackedit">
+  <div class="stackedit__html"><h3 id="schritt-1-wsl-aktivieren"><strong>Schritt 1: WSL aktivieren</strong></h3>
+<ol>
+<li>
+<p>Öffnen Sie eine <strong>PowerShell</strong>-Konsole als Administrator:</p>
+<ul>
+<li>Klicken Sie auf das Windows-Symbol, suchen Sie nach <em>PowerShell</em>, klicken Sie mit der rechten Maustaste und wählen Sie <em>Als Administrator ausführen</em>.</li>
+</ul>
+</li>
+<li>
+<p>Aktivieren Sie WSL mit diesem Befehl:</p>
+<p><code>wsl --install</code></p>
+<p><strong>Was passiert dabei?</strong></p>
+<ul>
+<li>WSL wird installiert.</li>
+<li>Die Virtual Machine Platform wird aktiviert.</li>
+<li>Die neueste Ubuntu-Version wird automatisch heruntergeladen und installiert.</li>
+</ul>
+</li>
+<li>
+<p><strong>Neustart erforderlich:</strong><br>
+Wenn Sie dazu aufgefordert werden, starten Sie Ihren Computer neu.</p>
+</li>
+</ol>
+<hr>
+<h3 id="schritt-2-optionale-manuelle-installation"><strong>Schritt 2: Optionale manuelle Installation</strong></h3>
+<p>Falls Sie mehr Kontrolle benötigen, z. B. eine spezifische Ubuntu-Version installieren möchten oder WSL 1 bevorzugen, können Sie die Schritte anpassen.</p>
+<h4 id="wsl-funktion-und-virtual-machine-platform-separat-aktivieren"><strong>WSL-Funktion und Virtual Machine Platform separat aktivieren</strong></h4>
+<p>Falls <code>wsl --install</code> nicht funktioniert, aktivieren Sie die Komponenten manuell:</p>
+<pre><code>dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart
+dism.exe /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart
+</code></pre>
+<p>Danach Neustart durchführen.</p>
+<h4 id="standardversion-auf-wsl-2-setzen"><strong>Standardversion auf WSL 2 setzen</strong></h4>
+<p><code>wsl --set-default-version 2</code></p>
+<h4 id="ubuntu-version-manuell-installieren"><strong>Ubuntu-Version manuell installieren</strong></h4>
+<p>Um eine spezifische Ubuntu-Version zu installieren (z. B. 20.04 oder 22.04), nutzen Sie:</p>
+<p><code>wsl --install -d Ubuntu-20.04</code></p>
+<p>Sie können verfügbare Distributionen auflisten:</p>
+<p><code>wsl --list --online</code></p>
+<hr>
+<h3 id="schritt-3-ubuntu-starten-und-konfigurieren"><strong>Schritt 3: Ubuntu starten und konfigurieren</strong></h3>
+<ol>
+<li>
+<p>Sobald die Installation abgeschlossen ist, starten Sie die Ubuntu-Distribution:</p>
+<p><code>wsl</code></p>
+<p>oder</p>
+<p><code>wsl -d Ubuntu-20.04</code></p>
+</li>
+<li>
+<p>Legen Sie Ihren Linux-Benutzernamen und Ihr Passwort fest.</p>
+</li>
+<li>
+<p>Aktualisieren Sie das System:</p>
+<p><code>sudo apt update &amp;&amp; sudo apt upgrade -y</code></p>
+</li>
+</ol>
+<hr>
+<h3 id="nützliche-befehle-zur-verwaltung-von-wsl"><strong>Nützliche Befehle zur Verwaltung von WSL</strong></h3>
+<ul>
+<li>
+<p><strong>Installierte Distributionen anzeigen:</strong></p>
+<p><code>wsl --list --verbose</code></p>
+</li>
+<li>
+<p><strong>Standard-Distribution ändern:</strong></p>
+<p><code>wsl --set-default &lt;Distribution-Name&gt;</code></p>
+</li>
+<li>
+<p><strong>Distribution deinstallieren:</strong></p>
+<p><code>wsl --unregister &lt;Distribution-Name&gt;</code></p>
+</li>
+<li>
+<p><strong>WSL aktualisieren:</strong></p>
+<p><code>wsl --update</code></p>
+</li>
+</ul>
+<hr>
+<h3 id="vorteile-der-installation-über-die-kommandozeile"><strong>Vorteile der Installation über die Kommandozeile</strong></h3>
+<ul>
+<li>Schneller und flexibler als der Microsoft Store.</li>
+<li>Ermöglicht die Installation spezifischer Distributionen oder Versionen.</li>
+<li>Ideal für skriptgesteuerte Setups oder automatisierte Installationen.</li>
+</ul>
+</div>
+</body>
+
+</html>

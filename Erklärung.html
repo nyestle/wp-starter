@@ -1,0 +1,535 @@
+﻿<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Erklärung</title>
+  <link rel="stylesheet" href="https://stackedit.io/style.css" />
+</head>
+
+<body class="stackedit">
+  <div class="stackedit__html"><h2 id="verzeichnisstruktur"><strong>1. Verzeichnisstruktur</strong></h2>
+<p>Zuerst legst du die Verzeichnisstruktur an. Das Plugin wird als eigener Ordner im WordPress-Plugin-Verzeichnis abgelegt.</p>
+<pre><code>/wp-content/plugins/crud-todo-list/
+|-- crud-todo-list.php   # Hauptdatei
+|-- js/
+|   |-- scripts.js       # JavaScript für AJAX
+|-- css/
+|   |-- styles.css       # CSS für Styling
+</code></pre>
+<hr>
+<h2 id="hauptdatei-crud-todo-list.php"><strong>2. Hauptdatei: <code>crud-todo-list.php</code></strong></h2>
+<p>Das ist die zentrale Datei, die alle WordPress-Hooks und die Logik für das Plugin enthält.</p>
+<p><strong>WordPress-Hooks</strong> sind Mechanismen, mit denen Entwickler in den Code-Workflow von WordPress eingreifen können, ohne den Core-Code zu ändern. Sie ermöglichen es, Funktionen an bestimmten Stellen auszuführen oder bestehende Funktionen anzupassen. Es gibt zwei Haupttypen von Hooks:</p>
+<ol>
+<li><strong>Actions</strong></li>
+<li><strong>Filters</strong></li>
+</ol>
+<hr>
+<h3 id="actions"><strong>2.1. Actions</strong></h3>
+<p>Actions sind Punkte im WordPress-Prozess, an denen benutzerdefinierter Code ausgeführt werden kann. Sie sind darauf ausgelegt, neue Funktionen hinzuzufügen oder bestimmte Abläufe auszulösen.</p>
+<h4 id="beispiel"><strong>Beispiel:</strong></h4>
+<pre><code>add_action('init', 'meine_custom_function');
+
+function meine_custom_function() {
+    // Code, der ausgeführt wird, wenn WordPress den "init"-Hook erreicht
+    error_log('Die init-Aktion wurde ausgeführt.');
+}
+</code></pre>
+<ul>
+<li><strong><code>add_action</code></strong>: Registriert die Funktion <code>meine_custom_function</code> für den <code>init</code>-Hook.</li>
+<li><strong><code>init</code></strong>: Ein WordPress-Hook, der ausgelöst wird, wenn WordPress seine Initialisierungsphase erreicht.</li>
+</ul>
+<p><strong>Was passiert?</strong><br>
+Die Funktion wird während der Initialisierungsphase von WordPress aufgerufen, z. B. um Skripte oder Styles zu laden.</p>
+<hr>
+<h3 id="filters"><strong>2.2. Filters</strong></h3>
+<p>Filters sind ähnlich wie Actions, aber sie dienen dazu, Daten zu manipulieren, bevor sie verwendet oder ausgegeben werden. Sie erlauben es, die Ausgabe oder Verarbeitung von WordPress-Daten zu ändern.</p>
+<h4 id="beispiel-1"><strong>Beispiel:</strong></h4>
+<pre><code>add_filter('the_title', 'custom_title_filter');
+
+function custom_title_filter($title) {
+    // Den Titel ändern
+    return '★ ' . $title;
+}
+</code></pre>
+<ul>
+<li><strong><code>add_filter</code></strong>: Registriert die Funktion <code>custom_title_filter</code> für den <code>the_title</code>-Filter.</li>
+<li><strong><code>the_title</code></strong>: Ein WordPress-Hook, der den Titel eines Beitrags oder einer Seite verarbeitet.</li>
+</ul>
+<p><strong>Was passiert?</strong><br>
+Der Titel jedes Beitrags wird um ein Sternsymbol (<code>★</code>) ergänzt, bevor er im Frontend angezeigt wird.</p>
+<h3 id="plugin-meta-und-sicherheitsprüfung"><strong>2.3. Plugin-Meta und Sicherheitsprüfung</strong></h3>
+<pre><code>&lt;?php
+/**
+ * Plugin Name: CRUD Todo List
+ * Description: Ein Plugin, das CRUD-Operationen auf einer Todo-Liste demonstriert.
+ * Version: 1.0
+ * Author: Dein Name
+ */
+
+// Sicherheitsmaßnahme: Direkten Zugriff verhindern
+defined('ABSPATH') || exit;
+</code></pre>
+<p><strong>Erklärung:</strong></p>
+<ol>
+<li><strong><code>/** Plugin Name</code></strong>: Informationen über das Plugin, die im WordPress-Adminbereich angezeigt werden.</li>
+<li><strong><code>defined('ABSPATH') || exit;</code></strong>: Verhindert, dass die Datei direkt im Browser ausgeführt wird. <code>ABSPATH</code> wird nur gesetzt, wenn WordPress korrekt geladen ist.</li>
+</ol>
+<hr>
+<h3 id="datenbanktabelle-erstellen"><strong>2.4. Datenbanktabelle erstellen</strong></h3>
+<pre><code>// Tabelle erstellen bei Plugin-Aktivierung
+register_activation_hook(__FILE__, 'todo_plugin_create_table');
+function todo_plugin_create_table() {
+    global $wpdb;
+
+    // Tabellenname
+    $table_name = $wpdb-&gt;prefix . 'todos';
+
+    // SQL-Befehl
+    $charset_collate = $wpdb-&gt;get_charset_collate();
+    $sql = "CREATE TABLE $table_name (
+        id INT NOT NULL AUTO_INCREMENT,
+        task TEXT NOT NULL,
+        PRIMARY KEY (id)
+    ) $charset_collate;";
+
+    // Datenbankoperation ausführen
+    require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+    dbDelta($sql);
+} 
+</code></pre>
+<p><strong>Erklärung:</strong></p>
+<ol>
+<li><strong><code>register_activation_hook()</code></strong>: Führt die Funktion aus, wenn das Plugin aktiviert wird.</li>
+<li><strong><code>global $wpdb;</code></strong>: <code>$wpdb</code> ist die WordPress-Datenbankklasse.</li>
+<li><strong><code>$wpdb-&gt;prefix</code></strong>: Fügt das Tabellenpräfix hinzu (z. B. <code>wp_</code>).</li>
+<li><strong><code>CREATE TABLE</code></strong>: SQL-Befehl zur Erstellung der Tabelle:
+<ul>
+<li><strong><code>id</code></strong>: Primärschlüssel, automatisch inkrementiert.</li>
+<li><strong><code>task</code></strong>: Speichert die Aufgabe.</li>
+</ul>
+</li>
+<li><strong><code>dbDelta($sql);</code></strong>: Führt die SQL-Anweisung aus.</li>
+</ol>
+<hr>
+<h3 id="admin-menü-registrieren"><strong>2.5. Admin-Menü registrieren</strong></h3>
+<pre><code>add_action('admin_menu', 'todo_plugin_admin_menu');
+function todo_plugin_admin_menu() {
+    add_menu_page(
+        'Todo List',          // Titel der Seite
+        'Todo List',          // Text im Admin-Menü
+        'manage_options',     // Berechtigungen
+        'todo-plugin',        // Slug der Seite
+        'todo_plugin_page',   // Callback-Funktion
+        'dashicons-list-view' // Icon
+    );
+} 
+</code></pre>
+<p><strong>Erklärung:</strong></p>
+<ol>
+<li><strong><code>add_menu_page()</code></strong>:
+<ul>
+<li>Registriert die Admin-Seite im WordPress-Menü.</li>
+<li><strong><code>'todo_plugin_page'</code></strong>: Funktion, die die Seite rendert.</li>
+</ul>
+</li>
+<li><strong><code>'dashicons-list-view'</code></strong>: WordPress-Icon für das Menü.</li>
+</ol>
+<hr>
+<h3 id="admin-seite-mit-html-formular"><strong>2.6. Admin-Seite mit HTML-Formular</strong></h3>
+<pre><code>function todo_plugin_page() {
+    global $wpdb;
+    $table_name = $wpdb-&gt;prefix . 'todos';
+
+    // Aufgaben aus der Datenbank abrufen
+    $todos = $wpdb-&gt;get_results("SELECT * FROM $table_name");
+
+    // HTML-Ausgabe
+    ?&gt;
+    &lt;div class="wrap"&gt;
+        &lt;h1&gt;Todo Liste&lt;/h1&gt;
+        &lt;form id="add-task-form"&gt;
+            &lt;input type="text" name="new_task" placeholder="Neue Aufgabe hinzufügen" required&gt;
+            &lt;button type="submit" class="button button-primary"&gt;Hinzufügen&lt;/button&gt;
+        &lt;/form&gt;
+        &lt;table class="widefat"&gt;
+            &lt;thead&gt;
+                &lt;tr&gt;
+                    &lt;th&gt;ID&lt;/th&gt;
+                    &lt;th&gt;Aufgabe&lt;/th&gt;
+                    &lt;th&gt;Bearbeiten&lt;/th&gt;
+                    &lt;th&gt;Löschen&lt;/th&gt;
+                &lt;/tr&gt;
+            &lt;/thead&gt;
+            &lt;tbody&gt;
+                &lt;?php foreach ($todos as $todo) : ?&gt;
+                    &lt;tr&gt;
+                        &lt;td&gt;&lt;?php echo $todo-&gt;id; ?&gt;&lt;/td&gt;
+                        &lt;td&gt;&lt;?php echo esc_html($todo-&gt;task); ?&gt;&lt;/td&gt;
+                        &lt;td&gt;
+                            &lt;form class="update-form"&gt;
+                                &lt;input type="hidden" name="update_id" value="&lt;?php echo $todo-&gt;id; ?&gt;"&gt;
+                                &lt;input type="text" name="update_task" value="&lt;?php echo esc_html($todo-&gt;task); ?&gt;" required&gt;
+                                &lt;button type="submit" class="button button-primary"&gt;Speichern&lt;/button&gt;
+                            &lt;/form&gt;
+                        &lt;/td&gt;
+                        &lt;td&gt;
+                            &lt;a href="#" class="button delete-button" data-id="&lt;?php echo $todo-&gt;id; ?&gt;"&gt;Löschen&lt;/a&gt;
+                        &lt;/td&gt;
+                    &lt;/tr&gt;
+                &lt;?php endforeach; ?&gt;
+            &lt;/tbody&gt;
+        &lt;/table&gt;
+    &lt;/div&gt;
+    &lt;?php
+} 
+</code></pre>
+<p><strong>Erklärung:</strong></p>
+<ol>
+<li><strong><code>$wpdb-&gt;get_results()</code></strong>: Ruft alle Aufgaben aus der Datenbank ab.</li>
+<li><strong><code>foreach ($todos as $todo)</code></strong>: Iteriert über die Aufgaben.</li>
+<li><strong><code>&lt;form class="update-form"&gt;</code></strong>: Formular zum Aktualisieren einer Aufgabe.</li>
+<li><strong><code>&lt;a class="delete-button"</code></strong>: Button zum Löschen einer Aufgabe.</li>
+</ol>
+<hr>
+<h3 id="ajax-hooks"><strong>2.7. AJAX-Hooks</strong></h3>
+<pre><code>add_action('wp_ajax_add_task', 'todo_plugin_add_task');
+function todo_plugin_add_task() {
+    global $wpdb;
+    $task = sanitize_text_field($_POST['task']);
+    $table_name = $wpdb-&gt;prefix . 'todos';
+    $wpdb-&gt;insert($table_name, ['task' =&gt; $task]);
+    wp_send_json_success(['id' =&gt; $wpdb-&gt;insert_id, 'task' =&gt; $task]);
+}
+
+add_action('wp_ajax_delete_task', 'todo_plugin_delete_task');
+function todo_plugin_delete_task() {
+    global $wpdb;
+    $id = intval($_POST['id']);
+    $table_name = $wpdb-&gt;prefix . 'todos';
+    $wpdb-&gt;delete($table_name, ['id' =&gt; $id]);
+    wp_send_json_success();
+}
+</code></pre>
+<p><strong>Erklärung:</strong></p>
+<ol>
+<li><strong><code>wp_ajax_add_task</code></strong>: AJAX-Handler für das Hinzufügen einer Aufgabe.</li>
+<li><strong><code>sanitize_text_field()</code></strong>: Bereinigt die Eingabe.</li>
+<li><strong><code>wp_send_json_success()</code></strong>: Sendet eine JSON-Antwort bei Erfolg.</li>
+</ol>
+<hr>
+<h2 id="javascript-jsscripts.js"><strong>3. JavaScript: <code>js/scripts.js</code></strong></h2>
+<pre><code>jQuery(document).ready(function ($) {
+    // Aufgabe hinzufügen
+    $('#add-task-form').submit(function (e) {
+        e.preventDefault();
+        const task = $(this).find('input[name="new_task"]').val();
+        $.ajax({
+            url: ajaxurl,
+            type: 'POST',
+            data: {
+                action: 'add_task',
+                task: task,
+            },
+            success: function (response) {
+                const newRow = `
+                    &lt;tr&gt;
+                        &lt;td&gt;${response.data.id}&lt;/td&gt;
+                        &lt;td&gt;${response.data.task}&lt;/td&gt;
+                        &lt;td&gt;
+                            &lt;form class="update-form"&gt;
+                                &lt;input type="hidden" name="update_id" value="${response.data.id}"&gt;
+                                &lt;input type="text" name="update_task" value="${response.data.task}" required&gt;
+                                &lt;button type="submit" class="button button-primary"&gt;Speichern&lt;/button&gt;
+                            &lt;/form&gt;
+                        &lt;/td&gt;
+                        &lt;td&gt;
+                            &lt;a href="#" class="button delete-button" data-id="${response.data.id}"&gt;Löschen&lt;/a&gt;
+                        &lt;/td&gt;
+                    &lt;/tr&gt;`;
+                $('table tbody').append(newRow);
+            }
+        });
+    });
+
+    // Aufgabe löschen
+    $(document).on('click', '.delete-button', function (e) {
+        e.preventDefault();
+        const id = $(this).data('id');
+        $.ajax({
+            url: ajaxurl,
+            type: 'POST',
+            data: {
+                action: 'delete_task',
+                id: id,
+            },
+            success: function () {
+                $(`a[data-id="${id}"]`).closest('tr').remove();
+            }
+        });
+    });
+}); 
+</code></pre>
+<p><strong>Erklärung:</strong></p>
+<ol>
+<li><strong><code>ajaxurl</code></strong>: WordPress-Variable, die die URL für AJAX bereitstellt.</li>
+<li><strong><code>.submit()</code></strong>: Hört auf das Absenden des Formulars.</li>
+<li><strong><code>.append(newRow)</code></strong>: Fügt neue Zeilen direkt hinzu.</li>
+</ol>
+<hr>
+<h2 id="php-update-handler-mit-ajax"><strong>4. PHP: Update-Handler mit AJAX</strong></h2>
+<p>Fügen wir zunächst den Update-Handler in die Hauptdatei <code>crud-todo-list.php</code> ein.</p>
+<h3 id="update-funktion-in-php"><strong>4.1. Update-Funktion in PHP</strong></h3>
+<pre><code>// AJAX-Handler: Aufgabe aktualisieren
+add_action('wp_ajax_update_task', 'todo_plugin_update_task');
+function todo_plugin_update_task() {
+    global $wpdb;
+
+    // Eingabewerte abrufen und validieren
+    $id = intval($_POST['id']);
+    $task = sanitize_text_field($_POST['task']);
+
+    // Tabellenname
+    $table_name = $wpdb-&gt;prefix . 'todos';
+
+    // Update in der Datenbank ausführen
+    $updated = $wpdb-&gt;update(
+        $table_name,            // Tabellenname
+        ['task' =&gt; $task],      // Neue Werte
+        ['id' =&gt; $id]           // Bedingung
+    );
+
+    // Antwort an den Client
+    if ($updated !== false) {
+        wp_send_json_success(['id' =&gt; $id, 'task' =&gt; $task]);
+    } else {
+        wp_send_json_error(['message' =&gt; 'Update fehlgeschlagen']);
+    }
+}
+</code></pre>
+<hr>
+<h3 id="erklärung"><strong>Erklärung</strong></h3>
+<ol>
+<li>
+<p><strong><code>add_action('wp_ajax_update_task', 'todo_plugin_update_task');</code></strong></p>
+<ul>
+<li>Registriert den AJAX-Handler für das Update.</li>
+<li>Dieser wird nur für eingeloggte Benutzer aufgerufen.</li>
+</ul>
+</li>
+<li>
+<p><strong><code>$id = intval($_POST['id']);</code></strong></p>
+<ul>
+<li>Holt die <code>id</code> der zu bearbeitenden Aufgabe aus der AJAX-Anfrage und wandelt sie in einen Integer um.</li>
+</ul>
+</li>
+<li>
+<p><strong><code>$task = sanitize_text_field($_POST['task']);</code></strong></p>
+<ul>
+<li>Holt die aktualisierte Beschreibung der Aufgabe und bereinigt sie mit <code>sanitize_text_field()</code>.</li>
+</ul>
+</li>
+<li>
+<p><strong><code>$wpdb-&gt;update(...);</code></strong></p>
+<ul>
+<li>Aktualisiert die Aufgabe in der Datenbank:
+<ul>
+<li><strong><code>['task' =&gt; $task]</code></strong>: Die Spalte <code>task</code> erhält den neuen Wert.</li>
+<li><strong><code>['id' =&gt; $id]</code></strong>: Bedingung, um die korrekte Zeile zu finden.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p><strong><code>wp_send_json_success(['id' =&gt; $id, 'task' =&gt; $task]);</code></strong></p>
+<ul>
+<li>Sendet eine JSON-Antwort zurück an den Browser, wenn das Update erfolgreich war.</li>
+</ul>
+</li>
+<li>
+<p><strong><code>wp_send_json_error()</code></strong></p>
+<ul>
+<li>Gibt einen Fehler zurück, falls das Update nicht erfolgreich war.</li>
+</ul>
+</li>
+</ol>
+<hr>
+<h2 id="javascript-update-logik"><strong>5. JavaScript: Update-Logik</strong></h2>
+<p>Die Datei <code>js/scripts.js</code> wird nun um die Update-Funktion erweitert:</p>
+<h3 id="update-handler-mit-ajax"><strong>5.1. Update-Handler mit AJAX</strong></h3>
+<pre><code>jQuery(document).ready(function ($) {
+    // Update-Funktion
+    $(document).on('submit', '.update-form', function (e) {
+        e.preventDefault();
+
+        // Eingabewerte abrufen
+        const form = $(this);
+        const id = form.find('input[name="update_id"]').val();
+        const task = form.find('input[name="update_task"]').val();
+
+        // AJAX-Anfrage senden
+        $.ajax({
+            url: ajaxurl,  // WordPress-AJAX-URL
+            type: 'POST',  // POST-Methode
+            data: {
+                action: 'update_task',  // PHP-Handler
+                id: id,                // ID der Aufgabe
+                task: task             // Aktualisierte Beschreibung
+            },
+            success: function (response) {
+                if (response.success) {
+                    // Erfolgreiches Update: Die Zeile aktualisieren
+                    form.closest('tr').find('td:nth-child(2)').text(response.data.task);
+                } else {
+                    alert('Fehler beim Aktualisieren: ' + response.data.message);
+                }
+            },
+            error: function () {
+                alert('Ein Fehler ist aufgetreten.');
+            }
+        });
+    });
+});
+</code></pre>
+<hr>
+<h3 id="erklärung-1"><strong>Erklärung</strong></h3>
+<ol>
+<li>
+<p><strong><code>$(document).on('submit', '.update-form', function (e) {...}</code></strong></p>
+<ul>
+<li>Bindet ein Ereignis an das Absenden jedes Formulars mit der Klasse <code>.update-form</code>. Dadurch wird die Update-Logik für jede Zeile dynamisch geladen.</li>
+</ul>
+</li>
+<li>
+<p><strong><code>e.preventDefault();</code></strong></p>
+<ul>
+<li>Verhindert das standardmäßige Absenden des Formulars.</li>
+</ul>
+</li>
+<li>
+<p><strong><code>const id = form.find('input[name="update_id"]').val();</code></strong></p>
+<ul>
+<li>Holt die <code>id</code> der Aufgabe aus dem versteckten Eingabefeld.</li>
+</ul>
+</li>
+<li>
+<p><strong><code>const task = form.find('input[name="update_task"]').val();</code></strong></p>
+<ul>
+<li>Holt die aktualisierte Beschreibung der Aufgabe aus dem Textfeld.</li>
+</ul>
+</li>
+<li>
+<p><strong><code>$.ajax({...})</code></strong></p>
+<ul>
+<li>Sendet eine AJAX-Anfrage an WordPress:
+<ul>
+<li><strong><code>action: 'update_task'</code></strong>: Verweist auf den PHP-Handler.</li>
+<li><strong><code>id</code></strong>: Die ID der zu bearbeitenden Aufgabe.</li>
+<li><strong><code>task</code></strong>: Die neue Beschreibung.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p><strong><code>if (response.success) {...}</code></strong></p>
+<ul>
+<li>Prüft, ob die Antwort erfolgreich war:
+<ul>
+<li><strong><code>response.data.task</code></strong>: Der aktualisierte Text wird direkt in die zweite Spalte der Tabelle eingefügt.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p><strong><code>error: function () {...}</code></strong></p>
+<ul>
+<li>Fehlerbehandlung für den Fall, dass die AJAX-Anfrage fehlschlägt.</li>
+</ul>
+</li>
+</ol>
+<hr>
+<h2 id="html-update-formular"><strong>6. HTML: Update-Formular</strong></h2>
+<p>Im HTML bleibt die Struktur fast unverändert. Das Formular für jede Aufgabe in der Tabelle wird bereits wie folgt generiert:</p>
+<pre><code>&lt;form class="update-form"&gt;
+    &lt;input type="hidden" name="update_id" value="&lt;?php echo $todo-&gt;id; ?&gt;"&gt;
+    &lt;input type="text" name="update_task" value="&lt;?php echo esc_html($todo-&gt;task); ?&gt;" required&gt;
+    &lt;button type="submit" class="button button-primary"&gt;Speichern&lt;/button&gt;
+&lt;/form&gt;
+</code></pre>
+<p><strong>Erklärung:</strong></p>
+<ol>
+<li>
+<p><strong><code>&lt;input type="hidden" name="update_id"&gt;</code></strong></p>
+<ul>
+<li>Speichert die <code>id</code> der Aufgabe unsichtbar im Formular, damit sie mit AJAX gesendet werden kann.</li>
+</ul>
+</li>
+<li>
+<p><strong><code>&lt;input type="text" name="update_task" value="..."&gt;</code></strong></p>
+<ul>
+<li>Das Eingabefeld zeigt die aktuelle Beschreibung der Aufgabe an und erlaubt Änderungen.</li>
+</ul>
+</li>
+<li>
+<p><strong><code>&lt;button type="submit"&gt;Speichern&lt;/button&gt;</code></strong></p>
+<ul>
+<li>Der Button sendet die Änderungen ab.</li>
+</ul>
+</li>
+</ol>
+<hr>
+<h2 id="datenfluss-im-überblick"><strong>7. Datenfluss im Überblick</strong></h2>
+<ol>
+<li>
+<p><strong>Benutzerinteraktion</strong>:<br>
+Der Benutzer ändert den Text in der Tabelle und klickt auf „Speichern“.</p>
+</li>
+<li>
+<p><strong>AJAX-Request</strong>:</p>
+<ul>
+<li>Die JavaScript-Funktion sendet die <code>id</code> und den neuen <code>task</code>-Text an den Server.</li>
+</ul>
+</li>
+<li>
+<p><strong>PHP-Handler</strong>:</p>
+<ul>
+<li><code>todo_plugin_update_task</code> verarbeitet die Anfrage und aktualisiert die Datenbank.</li>
+</ul>
+</li>
+<li>
+<p><strong>Frontend-Aktualisierung</strong>:</p>
+<ul>
+<li>Die Tabelle wird durch JavaScript mit den neuen Daten aktualisiert.</li>
+</ul>
+</li>
+</ol>
+<hr>
+<h2 id="finales-plugin"><strong>8. Finales Plugin</strong></h2>
+<p>Das vollständige Plugin enthält nun:</p>
+<ol>
+<li><strong>CRUD-Funktionen</strong> (Create, Read, Update, Delete) für die Aufgabenliste.</li>
+<li><strong>AJAX-Unterstützung</strong> für Insert, Update und Delete.</li>
+<li><strong>Einbindung in das WordPress-Admin-Panel.</strong></li>
+</ol>
+<hr>
+<h2 id="css-cssstyles.css"><strong>9. CSS: <code>css/styles.css</code></strong></h2>
+<pre><code>.wrap {
+margin-top: 20px;
+}
+
+#add-task-form {
+margin-bottom: 20px;
+}
+</code></pre>
+<hr>
+<p><strong>Letzte Schritte:</strong></p>
+<ol>
+<li>Lade die Dateien in WordPress hoch.</li>
+<li>Aktiviere das Plugin und teste die Funktionen im Admin-Bereich.</li>
+</ol>
+</div>
+</body>
+
+</html>
